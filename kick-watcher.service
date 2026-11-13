@@ -1,0 +1,25 @@
+[Unit]
+Description=Kick watcher (cofre diario Sunset Reward Case)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=kickwatcher
+Group=kickwatcher
+Environment=DATA_DIR=/var/lib/kick-watcher
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/var/lib/kick-watcher
+ExecStart=/usr/bin/xvfb-run -a -s "-screen 0 1280x800x24" /opt/kick-watcher/.venv/bin/python /opt/kick-watcher/watcher.py run
+Restart=always
+RestartSec=30
+MemoryMax=1300M
+CPUQuota=120%
+KillMode=control-group
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/kick-watcher
+
+[Install]
+WantedBy=multi-user.target

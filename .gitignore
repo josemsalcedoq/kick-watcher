@@ -1,0 +1,13 @@
+# sesión de Kick: nunca al repo
+state.json
+login-profile/
+profile/
+status.json
+debug/
+
+__pycache__/
+*.pyc
+.venv/
+
+# parche puntual para un bot privado de Telegram
+patch_resumen_bot.py
