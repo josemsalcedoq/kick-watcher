@@ -16,9 +16,36 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-DATA = Path(os.environ.get("DATA_DIR", "/var/lib/kick-watcher"))
+HERE = Path(__file__).resolve().parent
+
+
+def _data_dir():
+    if os.environ.get("DATA_DIR"):
+        return Path(os.environ["DATA_DIR"])
+    server = Path("/var/lib/kick-watcher")
+    if server.is_dir() and os.access(server, os.W_OK):
+        return server
+    return Path.home() / ".kick-watcher"
+
+
+def _browser():
+    """Real Chrome is needed for H.264; on Windows fall back to Edge if Chrome is missing."""
+    if os.environ.get("KICK_BROWSER"):
+        return os.environ["KICK_BROWSER"]
+    if os.name == "nt":
+        roots = [os.environ.get(v, "") for v in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA")]
+        if not any(r and Path(r, "Google/Chrome/Application/chrome.exe").exists() for r in roots):
+            return "msedge"
+    return "chrome"
+
+
+DATA = _data_dir()
+DATA.mkdir(parents=True, exist_ok=True)
 PROFILE = DATA / "profile"
-STATE = DATA / "state.json"          # session exported from the PC (login.py)
+STATE = DATA / "state.json"          # session exported by login.py
+if not STATE.exists() and (HERE / "state.json").exists():
+    STATE = HERE / "state.json"      # running straight from the repo folder
+BROWSER = _browser()
 STATUS = DATA / "status.json"
 DEBUG = DATA / "debug"
 LIMA = timezone(timedelta(hours=-5))
@@ -50,7 +77,8 @@ def save_status(**kw):
     tmp = STATUS.with_suffix(".tmp")
     tmp.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
     tmp.replace(STATUS)
-    os.chmod(STATUS, 0o644)
+    if os.name != "nt":
+        os.chmod(STATUS, 0o644)
     return st
 
 
@@ -58,7 +86,7 @@ def launch(p):
     PROFILE.mkdir(parents=True, exist_ok=True)
     ctx = p.chromium.launch_persistent_context(
         str(PROFILE),
-        channel="chrome",
+        channel=BROWSER,
         headless=False,
         viewport={"width": 1280, "height": 800},
         locale="es-PE",

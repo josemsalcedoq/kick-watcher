@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-labelledby="t d">
+  <title id="t">kick-watcher</title>
+  <desc id="d">Mira un stream de Kick cada día y reclama los cofres de recompensa automáticamente</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#131a24"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb347"/>
+      <stop offset="0.5" stop-color="#ff4f8b"/>
+      <stop offset="1" stop-color="#6a4cff"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3ddc5f"/>
+      <stop offset="1" stop-color="#a6f25c"/>
+    </linearGradient>
+    <clipPath id="card"><rect width="1200" height="360" rx="24"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <rect width="1200" height="360" fill="url(#bg)"/>
+    <!-- sunset glow -->
+    <circle cx="960" cy="300" r="230" fill="url(#sun)" opacity="0.16"/>
+    <circle cx="960" cy="300" r="150" fill="url(#sun)" opacity="0.18"/>
+    <!-- horizon lines -->
+    <g stroke="#ffffff" stroke-opacity="0.05" stroke-width="2">
+      <path d="M700 300H1200M720 320H1200M750 340H1200"/>
+    </g>
+
+    <!-- reward case -->
+    <g transform="translate(830 108)">
+      <rect x="0" y="34" width="260" height="140" rx="20" fill="url(#sun)"/>
+      <rect x="0" y="34" width="260" height="140" rx="20" fill="#0d1117" opacity="0.12"/>
+      <rect x="0" y="34" width="260" height="46" rx="20" fill="#ffffff" opacity="0.14"/>
+      <rect x="0" y="78" width="260" height="6" fill="#0d1117" opacity="0.45"/>
+      <rect x="92" y="0" width="76" height="40" rx="12" fill="none" stroke="#ffb347" stroke-width="10"/>
+      <rect x="108" y="66" width="44" height="32" rx="8" fill="#0d1117"/>
+      <circle cx="130" cy="82" r="6" fill="#a6f25c"/>
+      <g fill="#0d1117" opacity="0.35">
+        <rect x="30" y="104" width="22" height="54" rx="8"/>
+        <rect x="74" y="104" width="22" height="54" rx="8"/>
+        <rect x="164" y="104" width="22" height="54" rx="8"/>
+        <rect x="208" y="104" width="22" height="54" rx="8"/>
+      </g>
+      <!-- sparkles -->
+      <g fill="#ffe9a8">
+        <path d="M-34 20l6 14 14 6-14 6-6 14-6-14-14-6 14-6z"/>
+        <path d="M292 4l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
+        <path d="M300 150l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" opacity="0.7"/>
+      </g>
+    </g>
+
+    <!-- title -->
+    <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+      <g transform="translate(72 84)">
+        <rect width="56" height="56" rx="14" fill="#3ddc5f"/>
+        <path d="M22 16v24l20-12z" fill="#0d1117"/>
+      </g>
+      <text x="146" y="126" font-size="58" font-weight="800" fill="#f0f6fc" letter-spacing="-1">kick-watcher</text>
+      <text x="72" y="184" font-size="25" fill="#9da7b3">Mira un stream de Kick cada día y reclama</text>
+      <text x="72" y="218" font-size="25" fill="#9da7b3">los cofres de recompensa por ti.</text>
+
+      <!-- progress -->
+      <rect x="72" y="258" width="520" height="14" rx="7" fill="#ffffff" fill-opacity="0.08"/>
+      <rect x="72" y="258" width="380" height="14" rx="7" fill="url(#bar)"/>
+      <text x="72" y="304" font-size="19" font-weight="600" fill="#a6f25c">132 / 180 min</text>
+      <text x="592" y="304" font-size="19" fill="#6e7b8a" text-anchor="end">Sunset Reward Case</text>
+    </g>
+  </g>
+</svg>

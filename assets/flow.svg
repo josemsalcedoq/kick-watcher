@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-labelledby="t d">
+  <title id="t">Cómo funciona kick-watcher</title>
+  <desc id="d">Cuatro pasos: iniciar sesión en el PC, ver un stream en el servidor, reclamar el cofre y dormir hasta el reinicio diario</desc>
+  <defs>
+    <clipPath id="card"><rect width="1200" height="300" rx="24"/></clipPath>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0l10 5-10 5z" fill="#3ddc5f"/>
+    </marker>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="1200" height="300" fill="#0d1117"/>
+    <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+
+      <!-- step 1 -->
+      <g transform="translate(40 50)">
+        <rect width="240" height="170" rx="18" fill="#161d27" stroke="#263142" stroke-width="2"/>
+        <circle cx="34" cy="34" r="16" fill="#3ddc5f"/>
+        <text x="34" y="40" font-size="17" font-weight="800" fill="#0d1117" text-anchor="middle">1</text>
+        <g transform="translate(150 16)" fill="none" stroke="#9da7b3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="0" y="0" width="64" height="42" rx="6"/>
+          <path d="M20 54h24M32 42v12"/>
+        </g>
+        <text x="20" y="96" font-size="21" font-weight="700" fill="#f0f6fc">Inicia sesión</text>
+        <text x="20" y="124" font-size="15" fill="#9da7b3">login.py abre el navegador</text>
+        <text x="20" y="145" font-size="15" fill="#9da7b3">en tu PC y guarda state.json</text>
+      </g>
+
+      <!-- step 2 -->
+      <g transform="translate(330 50)">
+        <rect width="240" height="170" rx="18" fill="#161d27" stroke="#263142" stroke-width="2"/>
+        <circle cx="34" cy="34" r="16" fill="#3ddc5f"/>
+        <text x="34" y="40" font-size="17" font-weight="800" fill="#0d1117" text-anchor="middle">2</text>
+        <g transform="translate(152 14)">
+          <rect width="62" height="46" rx="8" fill="none" stroke="#9da7b3" stroke-width="3"/>
+          <path d="M24 12v22l19-11z" fill="#3ddc5f"/>
+        </g>
+        <text x="20" y="96" font-size="21" font-weight="700" fill="#f0f6fc">Ve un stream</text>
+        <text x="20" y="124" font-size="15" fill="#9da7b3">Chrome real bajo Xvfb, con</text>
+        <text x="20" y="145" font-size="15" fill="#9da7b3">tu cuenta, hasta 180 min</text>
+      </g>
+
+      <!-- step 3 -->
+      <g transform="translate(620 50)">
+        <rect width="240" height="170" rx="18" fill="#161d27" stroke="#263142" stroke-width="2"/>
+        <circle cx="34" cy="34" r="16" fill="#3ddc5f"/>
+        <text x="34" y="40" font-size="17" font-weight="800" fill="#0d1117" text-anchor="middle">3</text>
+        <g transform="translate(154 16)">
+          <rect x="0" y="12" width="60" height="34" rx="7" fill="#ff4f8b"/>
+          <rect x="0" y="12" width="60" height="12" rx="6" fill="#ffb347"/>
+          <rect x="20" y="0" width="20" height="14" rx="5" fill="none" stroke="#ffb347" stroke-width="4"/>
+          <circle cx="30" cy="27" r="4" fill="#0d1117"/>
+        </g>
+        <text x="20" y="96" font-size="21" font-weight="700" fill="#f0f6fc">Reclama el cofre</text>
+        <text x="20" y="124" font-size="15" fill="#9da7b3">Abre el diálogo de</text>
+        <text x="20" y="145" font-size="15" fill="#9da7b3">recompensas y pulsa Reclamar</text>
+      </g>
+
+      <!-- step 4 -->
+      <g transform="translate(910 50)">
+        <rect width="250" height="170" rx="18" fill="#161d27" stroke="#263142" stroke-width="2"/>
+        <circle cx="34" cy="34" r="16" fill="#3ddc5f"/>
+        <text x="34" y="40" font-size="17" font-weight="800" fill="#0d1117" text-anchor="middle">4</text>
+        <g transform="translate(176 14)">
+          <path d="M34 4a22 22 0 1 0 12 34A18 18 0 0 1 34 4z" fill="#ffe9a8"/>
+        </g>
+        <text x="20" y="96" font-size="21" font-weight="700" fill="#f0f6fc">Duerme</text>
+        <text x="20" y="124" font-size="15" fill="#9da7b3">Cierra el navegador hasta el</text>
+        <text x="20" y="145" font-size="15" fill="#9da7b3">reinicio diario (00:00 UTC)</text>
+      </g>
+
+      <!-- arrows -->
+      <g stroke="#3ddc5f" stroke-width="3" fill="none" marker-end="url(#arrow)">
+        <path d="M286 135h36"/>
+        <path d="M576 135h36"/>
+        <path d="M866 135h36"/>
+      </g>
+      <!-- loop back -->
+      <path d="M1035 226v26a12 12 0 0 1-12 12H462a12 12 0 0 1-12-12v-22" stroke="#3ddc5f" stroke-width="3" stroke-dasharray="7 7" fill="none" marker-end="url(#arrow)"/>
+      <text x="742" y="286" font-size="14" fill="#6e7b8a" text-anchor="middle">cada día</text>
+    </g>
+  </g>
+</svg>
