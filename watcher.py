@@ -376,7 +376,7 @@ def session(p):
         slug, bad, last, stalled, tick = None, [], None, 0, 0
         while True:
             key = lambda c: f"{c['id']}|{c['window']['starts_at']}"
-            ready = [c for c in chs if c["status"] != "in_progress"
+            ready = [c for c in chs if c["status"] not in ("in_progress", "claimed")
                      and c["condition"]["progress"] >= c["condition"]["threshold"]
                      and (key(c) not in tried or
                           (tried[key(c)].get("estado_despues") == c["status"]
