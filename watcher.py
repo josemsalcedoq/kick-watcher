@@ -115,7 +115,9 @@ def logged_in(ctx):
 def video_info(page):
     try:
         return page.evaluate(
-            """() => { const v = document.querySelector('video');
+            """() => { // the stream player, not small looping videos (reward-case animations)
+                const v = [...document.querySelectorAll('video')]
+                    .sort((a, b) => b.videoWidth * b.videoHeight - a.videoWidth * a.videoHeight)[0];
                 if (!v) return null;
                 return {t: v.currentTime, paused: v.paused, rs: v.readyState,
                         w: v.videoWidth, h: v.videoHeight}; }"""
@@ -125,7 +127,8 @@ def video_info(page):
 
 
 def dismiss_banners(page):
-    for name in ("Accept All Cookies", "Aceptar todas las cookies"):
+    # cookie banner and "Novedades" announcement popups, which cover the page
+    for name in ("Accept All Cookies", "Aceptar todas las cookies", "Entendido", "Got it"):
         try:
             b = page.get_by_role("button", name=name)
             if b.count() and b.first.is_visible():
@@ -168,7 +171,9 @@ def open_stream(page, skip=()):
         a = video_info(page)
         if a and a["paused"]:
             try:
-                page.evaluate("() => { const v = document.querySelector('video'); v.muted = true; return v.play(); }")
+                page.evaluate("""() => { const v = [...document.querySelectorAll('video')]
+                    .sort((a, b) => b.videoWidth * b.videoHeight - a.videoWidth * a.videoHeight)[0];
+                    v.muted = true; return v.play(); }""")
             except Exception:
                 pass
         page.wait_for_timeout(8000)
@@ -242,54 +247,106 @@ def summary(chs):
              "meta": c["condition"]["threshold"], "estado": c["status"]} for c in chs]
 
 
+JS_CLICK = """(labels) => {
+    const bs = [...document.querySelectorAll('button')].filter(b => !b.disabled
+        && b.offsetParent !== null && labels.includes((b.innerText || '').trim()));
+    if (!bs.length) return null;
+    const b = bs[bs.length - 1];
+    b.click();
+    return (b.innerText || '').trim(); }"""
+
+
+def js_click(page, *labels):
+    """Click a visible, enabled button by its text from inside the page.
+    (Playwright's own click often stalls on Kick's heavy pages under Xvfb.)"""
+    try:
+        return page.evaluate(JS_CLICK, list(labels))
+    except Exception:
+        return None
+
+
+def shot(page, name):
+    try:
+        page.screenshot(path=str(DEBUG / name), timeout=20000)
+    except Exception as e:
+        log(f"captura {name} falló: {str(e)[:120]}")
+
+
+def prize(seen):
+    """Whatever the claim endpoint says we won, minus the roulette filler."""
+    for r in seen:
+        if "/claim" in r["url"] and r.get("status") == 200:
+            try:
+                data = json.loads(r["body"]).get("data", {})
+                data.pop("roulette", None)
+                return json.dumps(data, ensure_ascii=False)[:700]
+            except Exception:
+                return None
+    return None
+
+
 def claim(page, tag):
     """Open the rewards dialog and press every enabled 'Reclamar'. Returns what happened."""
     DEBUG.mkdir(parents=True, exist_ok=True)
     seen = []
 
     def on_resp(r):
-        if "web.kick.com/api" in r.url and r.request.method != "GET":
+        if "web.kick.com/api" in r.url and r.request.method != "GET" and "/realtime/" not in r.url:
             try:
-                seen.append({"url": r.url, "status": r.status, "body": r.text()[:3000]})
+                seen.append({"url": r.url, "status": r.status, "body": r.text()[:60000]})
             except Exception:
                 seen.append({"url": r.url, "status": r.status})
 
     page.on("response", on_resp)
-    clicked = 0
+    clicked, text = 0, ""
     try:
-        page.keyboard.press("Escape")
-        page.locator('button[aria-label="Reclama tu recompensa"]').first.click(timeout=10000)
-        page.wait_for_timeout(4000)
-        dlg = page.get_by_role("dialog").filter(has_text="recompensas").last
+        js_click(page, "Entendido", "Got it")      # "Novedades" popup covers everything
+        page.wait_for_timeout(1000)
+        opened = page.evaluate(
+            """() => { const b = document.querySelector('button[aria-label="Reclama tu recompensa"], button[aria-label="Claim your reward"]');
+                if (!b) return false; b.click(); return true; }""")
+        if not opened:
+            raise RuntimeError("no encontré el botón de recompensas")
+        page.wait_for_timeout(5000)
+        if js_click(page, "Entendido", "Got it"):   # it can also open on top of the dialog
+            page.wait_for_timeout(2000)
         for step in range(8):
-            page.screenshot(path=str(DEBUG / f"claim-{tag}-{step}.png"))
-            btn = dlg.get_by_role("button", name="Reclamar", exact=True)
-            if btn.count() and btn.first.is_enabled():
-                btn.first.click(timeout=5000)
+            shot(page, f"claim-{tag}-{step}.png")
+            if js_click(page, "Reclamar", "Claim"):
                 clicked += 1
                 page.wait_for_timeout(15000)
                 continue
-            nxt = dlg.locator('button:has(svg[data-ds-icon*="Right"]), button[aria-label*="iguiente"]')
-            if nxt.count() and nxt.first.is_visible() and step < 6:
-                nxt.first.click(timeout=3000)
-                page.wait_for_timeout(2500)
-                continue
+            if clicked:
+                break
+            nxt = page.get_by_role("dialog").locator('button:has(svg[data-ds-icon*="Right"]), button[aria-label*="iguiente"]')
+            try:
+                if step < 5 and nxt.count() and nxt.first.is_visible():
+                    nxt.first.click(timeout=3000, no_wait_after=True)
+                    page.wait_for_timeout(2500)
+                    continue
+            except Exception:
+                pass
             break
-        page.screenshot(path=str(DEBUG / f"claim-{tag}-fin.png"))
+        shot(page, f"claim-{tag}-fin.png")
         try:
-            text = page.get_by_role("dialog").last.inner_text(timeout=3000)[:1500]
+            text = page.evaluate(
+                """() => { const d = [...document.querySelectorAll('[role=dialog]')].filter(e => e.getClientRects().length);
+                    return d.length ? d[d.length - 1].innerText.slice(0, 1500) : ''; }""")
         except Exception:
-            text = ""
-        (DEBUG / f"claim-{tag}.html").write_text(page.content(), encoding="utf-8")
+            pass
+        try:
+            (DEBUG / f"claim-{tag}.html").write_text(page.content(), encoding="utf-8")
+        except Exception:
+            pass
         page.keyboard.press("Escape")
     except Exception as e:
-        text = f"error: {e}"
-        log(f"claim falló: {e}")
+        text = f"error: {str(e)[:300]}"
+        log(f"claim falló: {str(e)[:300]}")
     finally:
         page.remove_listener("response", on_resp)
     (DEBUG / f"claim-{tag}.json").write_text(json.dumps(seen, ensure_ascii=False, indent=1), encoding="utf-8")
-    log(f"claim: {clicked} clics, {len(seen)} respuestas")
-    return {"clics": clicked, "texto": text, "respuestas": seen}
+    log(f"claim: {clicked} clics, {len(seen)} respuestas, premio={prize(seen)}")
+    return {"clics": clicked, "texto": text, "respuestas": seen, "premio": prize(seen)}
 
 
 def parse_z(s):
@@ -321,15 +378,19 @@ def session(p):
             key = lambda c: f"{c['id']}|{c['window']['starts_at']}"
             ready = [c for c in chs if c["status"] != "in_progress"
                      and c["condition"]["progress"] >= c["condition"]["threshold"]
-                     and key(c) not in tried]
+                     and (key(c) not in tried or
+                          (tried[key(c)].get("estado_despues") == c["status"]
+                           and tried[key(c)].get("intentos", 1) < 3))]
             for c in ready:
                 log(f"listo para reclamar: {c['name']} ({c['status']})")
                 res = claim(page, c["name"].split()[0].lower() + "-" + now_lima().strftime("%m%d"))
                 after = challenges(page, ctx) or chs
                 now_c = next((x for x in after if x["id"] == c["id"]), c)
                 tried[key(c)] = {"nombre": c["name"], "cuando": now_lima().isoformat(timespec="seconds"),
+                                 "intentos": tried.get(key(c), {}).get("intentos", 0) + 1,
                                  "estado_antes": c["status"], "estado_despues": now_c["status"],
-                                 "clics": res["clics"], "texto": res["texto"][:600]}
+                                 "clics": res["clics"], "premio": res["premio"],
+                                 "texto": res["texto"][:600]}
                 tried = dict(list(tried.items())[-40:])
                 save_status(reclamados=tried, ultimo_reclamo=tried[key(c)], cofres=summary(after))
                 chs = after
@@ -474,7 +535,18 @@ def inspect():
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
-    if mode == "inspect":
+    if mode == "claim":      # one manual claim attempt (stop the service first)
+        with sync_playwright() as p:
+            ctx = launch(p)
+            page = ctx.pages[0] if ctx.pages else ctx.new_page()
+            page.goto("https://kick.com/", wait_until="domcontentloaded")
+            page.wait_for_timeout(8000)
+            dismiss_banners(page)
+            res = claim(page, "manual")
+            print(json.dumps({"clics": res["clics"], "texto": res["texto"][:800]}, ensure_ascii=False, indent=1))
+            print(json.dumps(summary(challenges(page, ctx) or []), ensure_ascii=False))
+            ctx.close()
+    elif mode == "inspect":
         inspect()
     elif mode == "probe":
         probe(sys.argv[2] if len(sys.argv) > 2 else None)
